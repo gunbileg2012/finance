@@ -9,8 +9,10 @@ var  uiController = (function(){
         precent: ".budget__expenses--percentage",
         totalInc: ".budget__income--value",
         totalExp: ".budget__expenses--value",
+        containerDiv: ".container",
     }
     return {
+
         getInput: function(){
             return {
                 type: document.querySelector(DomStrings.inputType).value,
@@ -48,10 +50,10 @@ var  uiController = (function(){
             var html, list;
             if(type === "inc"){
                 list = '.income__list';
-                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">+ %value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">+ %value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             } else{
                 list = '.expenses__list';
-                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">- %value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">- %value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
 
             // Тэр HTML дотроо зарлагийн утгуудыг REPLACE ашиглаж өөрчилж өгнө
@@ -60,7 +62,13 @@ var  uiController = (function(){
             html = html.replace('%value%', item.value);
             // Бэлтгэсэн HTML ээ DOM руу хийж өгнө
             document.querySelector(list).insertAdjacentHTML('beforeend', html);
-        }
+        },
+
+        deleteListItem : function(id){
+            console.log(id);
+            var el = document.getElementById(id);
+            el.parentNode.removeChild(el);
+        },
     }
 })();
 
@@ -141,7 +149,18 @@ var  financeController = (function(){
                     totalInc : data.totals.inc,
                     totalExp: data.totals.exp,
                 }
-            }
+            },
+
+            deleteItem: function(type, id){
+                var ids = data.items[type].map(function(el){
+                    return el.id;
+                });
+                var index = ids.indexOf(id);
+                if(index !== -1){
+                    data.items[type].splice(index, 1);
+                }  
+            
+            },
         }
 })();
 
@@ -174,6 +193,7 @@ var  appController = (function(uiController,financeController){
     var setupEventListeners = function(){
 
         var DOM = uiController.getDomStrings();
+
         document.querySelector(DOM.addBtn).addEventListener("click", function(){
             ctrlAddItem();
         });
@@ -184,6 +204,19 @@ var  appController = (function(uiController,financeController){
             ctrlAddItem();
            }
         });
+
+        document
+            .querySelector(DOM.containerDiv)
+            .addEventListener('click', function(event){
+              //  console.log(event.target.id);
+              var id = event.target.parentNode.parentNode.parentNode.parentNode.id;
+              if(id !== ""){
+                var arr = id.split('-');
+                var type = arr[0], itemId = parseInt(arr[1]);
+              }
+              financeController.deleteItem(type, itemId);
+              uiController.deleteListItem(id);
+            });
     }
 
     return {
